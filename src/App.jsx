@@ -1,7 +1,8 @@
 // CÓDIGO FINAL DO G-NUTRIA PRO (EFPG creation) - COPIAR TUDO ABAIXO E COLAR NO src/App.jsx
 
-import { useState, useMemo, useEffect } from 'react';
-import { Send, Globe, Award, Zap, CheckCircle, XCircle } from 'lucide-react';
+import { useState, useMemo } from 'react';
+// Ícones de peso, pressão (coração), glicose (gota), e outros ícones
+import { Send, Globe, Award, Zap, CheckCircle, XCircle, Scale, Heart, Droplet, PlusCircle } from 'lucide-react';
 
 // --- TRANSLATIONS (i18n) ---
 const TRANSLATIONS = {
@@ -36,9 +37,17 @@ const TRANSLATIONS = {
         planFeature6: 'Suporte dedicado G/Gemini',
         selectPlan: 'Selecionar Plano',
         upgradeSuccessTitle: 'Parabéns, Assinatura Ativada!',
-        upgradeSuccessMessage: 'Seu acesso PRO foi ativado no Firestore. O próximo passo seria o pagamento real.',
+        upgradeSuccessMessage: 'Seu acesso PRO foi ativado no Firestore (Simulado).',
         backToDashboard: 'Voltar ao Dashboard',
         paymentSimulated: 'Pagamento Simulado',
+        // NOVOS TEXTOS PARA FUNCIONALIDADE
+        enterData: 'Registrar Dados',
+        weightPlaceholder: 'Ex: 85.2',
+        pressurePlaceholder: 'Ex: 120/80',
+        glucosePlaceholder: 'Ex: 95',
+        saveData: 'Salvar Registro',
+        dataSavedSuccess: 'Dados salvos com sucesso!',
+        dataEntryTitle: 'Novo Registro de Saúde',
     },
     'pt-PT': {
         appName: 'G-NUTRIA PRO (EFPG creation)',
@@ -71,9 +80,17 @@ const TRANSLATIONS = {
         planFeature6: 'Apoio dedicado G/Gemini',
         selectPlan: 'Selecionar Plano',
         upgradeSuccessTitle: 'Parabéns, Subscrição Ativada!',
-        upgradeSuccessMessage: 'O seu acesso PRO foi ativado no Firestore. O próximo passo seria o pagamento real.',
+        upgradeSuccessMessage: 'O seu acesso PRO foi ativado no Firestore (Simulado).',
         backToDashboard: 'Voltar ao Painel',
         paymentSimulated: 'Pagamento Simulado',
+        // NOVOS TEXTOS PARA FUNCIONALIDADE
+        enterData: 'Registar Dados',
+        weightPlaceholder: 'Ex: 85.2',
+        pressurePlaceholder: 'Ex: 120/80',
+        glucosePlaceholder: 'Ex: 95',
+        saveData: 'Guardar Registo',
+        dataSavedSuccess: 'Dados guardados com sucesso!',
+        dataEntryTitle: 'Novo Registo de Saúde',
     },
     'es-ES': {
         appName: 'G-NUTRIA PRO (EFPG creation)',
@@ -106,9 +123,17 @@ const TRANSLATIONS = {
         planFeature6: 'Soporte dedicado G/Gemini',
         selectPlan: 'Seleccionar Plano',
         upgradeSuccessTitle: '¡Felicidades, Suscripción Activada!',
-        upgradeSuccessMessage: 'Tu acceso PRO ha sido activado en Firestore. El siguiente paso sería el pago real.',
+        upgradeSuccessMessage: 'Tu acceso PRO ha sido activado en Firestore (Simulado).',
         backToDashboard: 'Volver al Panel',
         paymentSimulated: 'Pago Simulado',
+        // NOVOS TEXTOS PARA FUNCIONALIDADE
+        enterData: 'Registrar Datos',
+        weightPlaceholder: 'Ej: 85.2',
+        pressurePlaceholder: 'Ej: 120/80',
+        glucosePlaceholder: 'Ej: 95',
+        saveData: 'Guardar Registro',
+        dataSavedSuccess: '¡Datos guardados con éxito!',
+        dataEntryTitle: 'Nuevo Registro de Salud',
     }
 };
 
@@ -117,32 +142,56 @@ const App = () => {
     const [isPro, setIsPro] = useState(false);
     // Simula o idioma atual
     const [currentLang, setCurrentLang] = useState('pt-BR');
-    // Controla a navegação entre dashboard e tela de upgrade/sucesso
-    const [currentPage, setCurrentPage] = useState('dashboard'); // 'dashboard', 'upgrade', 'success'
+    // Controla a navegação entre dashboard e tela de upgrade/sucesso/dataentry
+    const [currentPage, setCurrentPage] = useState('dashboard'); // 'dashboard', 'upgrade', 'success', 'dataentry'
 
     // Alias para o dicionário de tradução atual
     const T = useMemo(() => TRANSLATIONS[currentLang], [currentLang]);
 
-    // Simulação de dados do usuário
+    // Simulação de DADOS ATUAIS do usuário (Seriam puxados do Firestore)
     const [userData, setUserData] = useState({
         weight: '85.2',
         pressure: '120/80',
         glucose: '95',
+        lastRecordTime: 'Hoje'
+    });
+
+    // Estado temporário para a entrada de novos dados (INPUTS)
+    const [newData, setNewData] = useState({
+        weight: '',
+        pressure: '',
+        glucose: '',
     });
 
     // Função que simula a ativação da assinatura no Firestore
     const handleUpgradeSubscription = () => {
         // Simula a lógica de pagamento e atualização do Firestore
-        // console.log("Simulação de pagamento iniciada...");
-
-        // Na vida real, aqui você chamaria uma Cloud Function para iniciar o Stripe Checkout/PIX.
-
-        // Atualiza o estado para simular o sucesso e vai para a tela de sucesso
         setTimeout(() => {
             setIsPro(true);
             setCurrentPage('success');
-            // console.log("Status PRO atualizado no Firestore (simulado).");
         }, 1000);
+    };
+
+    // FUNÇÃO QUE SALVA OS NOVOS DADOS
+    const handleSaveData = (e) => {
+        e.preventDefault(); // Impede o recarregamento da página
+
+        // Na vida real, esta função chamaria uma Cloud Function para salvar no Firestore.
+
+        // Atualiza o Dashboard com os novos dados
+        setUserData({
+            weight: newData.weight || userData.weight, // Se vazio, mantém o antigo
+            pressure: newData.pressure || userData.pressure,
+            glucose: newData.glucose || userData.glucose,
+            lastRecordTime: new Date().toLocaleTimeString(currentLang, { hour: '2-digit', minute: '2-digit' }),
+        });
+
+        // Limpa os inputs
+        setNewData({ weight: '', pressure: '', glucose: '' });
+
+        // Volta para o Dashboard e exibe a mensagem de sucesso
+        setCurrentPage('dashboard');
+        alert(T.dataSavedSuccess);
     };
 
     // --- Componentes ---
@@ -196,9 +245,81 @@ const App = () => {
             <p className="text-3xl font-bold text-gray-800 mt-2">
                 {value} <span className="text-base font-normal text-gray-500">{unit}</span>
             </p>
-            <p className="text-xs text-gray-400 mt-1">{T.lastRecord}: Hoje</p>
+            <p className="text-xs text-gray-400 mt-1">{T.lastRecord}: {userData.lastRecordTime}</p>
         </div>
     );
+
+    // --- NOVA TELA: ENTRADA DE DADOS ---
+    const DataEntryScreen = () => (
+        <div className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-2xl mt-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">{T.dataEntryTitle}</h2>
+            <form onSubmit={handleSaveData} className="space-y-4">
+
+                {/* Campo Peso */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 flex items-center mb-1">
+                        <Scale className="w-4 h-4 mr-2 text-red-500" /> {T.titleWeight}
+                    </label>
+                    <input
+                        type="number"
+                        step="0.1"
+                        value={newData.weight}
+                        onChange={(e) => setNewData({ ...newData, weight: e.target.value })}
+                        placeholder={T.weightPlaceholder}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+                    />
+                </div>
+
+                {/* Campo Pressão Arterial */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 flex items-center mb-1">
+                        <Heart className="w-4 h-4 mr-2 text-blue-500" /> {T.titlePressure}
+                    </label>
+                    <input
+                        type="text"
+                        value={newData.pressure}
+                        onChange={(e) => setNewData({ ...newData, pressure: e.target.value })}
+                        placeholder={T.pressurePlaceholder}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+                    />
+                </div>
+
+                {/* Campo Glicose */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 flex items-center mb-1">
+                        <Droplet className="w-4 h-4 mr-2 text-green-500" /> {T.titleGlucose}
+                    </label>
+                    <input
+                        type="number"
+                        value={newData.glucose}
+                        onChange={(e) => setNewData({ ...newData, glucose: e.target.value })}
+                        placeholder={T.glucosePlaceholder}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+                    />
+                </div>
+
+                {/* Botões de Ação */}
+                <div className="flex space-x-3 pt-2">
+                    <button
+                        type="button"
+                        onClick={() => setCurrentPage('dashboard')}
+                        className="flex-1 bg-gray-300 text-gray-800 py-3 rounded-lg text-base font-medium hover:bg-gray-400 transition"
+                    >
+                        {T.cancel}
+                    </button>
+                    <button
+                        type="submit"
+                        className="flex-1 bg-purple-600 text-white py-3 rounded-lg text-base font-medium hover:bg-purple-700 transition"
+                    >
+                        {T.saveData}
+                    </button>
+                </div>
+            </form>
+        </div>
+    );
+    // --- FIM NOVA TELA: ENTRADA DE DADOS ---
+
+    // (O restante dos componentes UpgradeScreen e SuccessScreen permanecem aqui, mas foram omitidos para brevidade)
 
     const UpgradeScreen = () => (
         <div className="max-w-xl mx-auto p-4 bg-white rounded-xl shadow-2xl mt-8">
@@ -256,126 +377,5 @@ const App = () => {
                 onClick={() => setCurrentPage('dashboard')}
                 className="w-full bg-green-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition"
             >
-                {T.backToDashboard}
-            </button>
-        </div>
-    );
+                {T.
 
-
-    // Renderiza a tela apropriada
-    if (currentPage === 'upgrade') {
-        return (
-            <div className="min-h-screen bg-gray-100 p-4">
-                <header className="flex justify-between items-center py-4 px-8 bg-white shadow-md">
-                    <h1 className="text-xl font-bold text-gray-900">{T.appName}</h1>
-                    <LanguageSelector />
-                </header>
-                <UpgradeScreen />
-            </div>
-        );
-    }
-
-    if (currentPage === 'success') {
-        return (
-            <div className="min-h-screen bg-gray-100 p-4">
-                <header className="flex justify-between items-center py-4 px-8 bg-white shadow-md">
-                    <h1 className="text-xl font-bold text-gray-900">{T.appName}</h1>
-                    <LanguageSelector />
-                </header>
-                <SuccessScreen />
-            </div>
-        );
-    }
-
-
-    // Renderiza o Dashboard (página padrão)
-    return (
-        <div className="min-h-screen bg-gray-100">
-            <header className="flex justify-between items-center py-4 px-8 bg-white shadow-md">
-                <h1 className="text-xl font-bold text-gray-900">{T.appName}</h1>
-                <LanguageSelector />
-            </header>
-
-            <main className="max-w-7xl mx-auto p-6 lg:p-8">
-                <h2 className="text-3xl font-extrabold text-gray-900 mb-6">{T.dashboard}</h2>
-
-                {/* --- Grid de Informações e Status --- */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <SubscriptionCard />
-
-                    <DataCard
-                        title={T.titleWeight}
-                        value={userData.weight}
-                        unit="Kg"
-                        icon={Zap}
-                        color="#EF4444" // Vermelho
-                    />
-                    <DataCard
-                        title={T.titlePressure}
-                        value={userData.pressure}
-                        unit=""
-                        icon={Zap}
-                        color="#3B82F6" // Azul
-                    />
-                    <DataCard
-                        title={T.titleGlucose}
-                        value={userData.glucose}
-                        unit="mg/dL"
-                        icon={Zap}
-                        color="#10B981" // Verde
-                    />
-                </div>
-
-                {/* --- Proactive Alert / Upgrade Section (Se não for PRO) --- */}
-                {!isPro && (
-                    <div className="p-6 bg-purple-100 border-l-4 border-purple-500 rounded-lg shadow-lg mb-8 flex justify-between items-center">
-                        <div>
-                            <h3 className="text-lg font-semibold text-purple-800">{T.upgradeToPro}</h3>
-                            <p className="text-sm text-purple-700">{T.upgradeDescription}</p>
-                            <ul className="mt-2 text-sm text-purple-700 list-disc list-inside">
-                                <li>{T.feature1}</li>
-                                <li>{T.feature2}</li>
-                                <li>{T.feature3}</li>
-                            </ul>
-                        </div>
-                        <button
-                            onClick={() => setCurrentPage('upgrade')}
-                            className="bg-purple-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-purple-700 transition"
-                        >
-                            {T.startUpgrade}
-                        </button>
-                    </div>
-                )}
-
-                {/* --- Área de Chat (Central) --- */}
-                <div className="bg-white rounded-xl shadow-2xl p-6 h-96 flex flex-col">
-                    <div className="flex-grow overflow-y-auto mb-4 p-4 border rounded-lg bg-gray-50">
-                        {/* Aqui entrariam as mensagens do chat */}
-                        <p className="text-gray-500 italic">Área de Chat com o modelo G/Gemini (Implementação futura).</p>
-                    </div>
-
-                    <form className="flex items-center">
-                        <input
-                            type="text"
-                            placeholder={T.chatPlaceholder}
-                            className="flex-grow p-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        />
-
-                        {/* Botão de envio, finalizado no trecho anterior */}
-                        <button
-                            type="submit"
-                            className="w-12 h-12 flex items-center justify-center
-                bg-purple-600 text-white rounded-full shadow-lg hover:bg-purple-700 transition
-                duration-150 disabled:bg-gray-400 hover:shadow-xl"
-                            aria-label="Enviar mensagem"
-                        >
-                            <Send className="w-5 h-5" aria-hidden="true" />
-                        </button>
-                    </form>
-                </div>
-            </main>
-        </div>
-    );
-};
-
-export default App;
