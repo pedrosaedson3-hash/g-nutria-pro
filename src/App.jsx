@@ -247,7 +247,41 @@ const App = () => {
             </p>
             <p className="text-xs text-gray-400 mt-1">{T.lastRecord}: {userData.lastRecordTime}</p>
         </div>
-    );
+    );// ... no final do componente App, onde você decide o que renderizar
+    if (currentPage === 'dashboard') {
+        return (
+            <div className="min-h-screen bg-gray-100 p-4 md:p-8">
+                <header className="flex justify-between items-center mb-6">
+                    <h1 className="text-3xl font-extrabold text-purple-700">{T.dashboard}</h1>
+                    <LanguageSelector />
+                </header>
+
+                {/* --- AQUI É O LUGAR IDEAL PARA INSERIR O CÓDIGO DO BOTÃO --- */}
+                <div className="mb-6">
+                    <button
+                        onClick={() => setCurrentPage('dataentry')}
+                        className="w-full bg-purple-500 text-white py-3 rounded-xl text-lg font-semibold hover:bg-purple-600 transition shadow-lg flex items-center justify-center space-x-2"
+                    >
+                        <PlusCircle className="w-6 h-6" />
+                        <span>{T.enterData}</span>
+                    </button>
+                </div>
+                {/* ------------------------------------------------------------------ */}
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* O SubscriptionCard deve vir aqui ou em uma linha separada */}
+                    <SubscriptionCard />
+
+                    {/* Os DataCards (Peso, Pressão, Glicose) vêm logo abaixo */}
+                    <DataCard
+                        title={T.titleWeight}
+                        value={userData.weight}
+                        unit="Kg"
+                        icon={Scale}
+                        color="#EF4444" // Red-500
+                    />
+                    {/* ... (e o resto dos cards) */}
+    // ...
 
     // --- NOVA TELA: ENTRADA DE DADOS ---
     const DataEntryScreen = () => (
